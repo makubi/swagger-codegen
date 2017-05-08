@@ -1,0 +1,12 @@
+/**
+ * {{#description}}{{.}}{{/description}}{{^description}}{{classname}}{{/description}}
+ */
+{{>generatedAnnotation}}
+case class {{classname}} (
+{{#vars}}
+    {{#description}}
+        /* {{{description}}} */
+    {{/description}}
+    {{{name}}}: {{^required}}Option[{{/required}}{{^isEnum}}{{datatype}}{{/isEnum}}{{#isEnum}}{{classname}}Enums.{{datatypeWithEnum}}{{/isEnum}}{{^required}}]{{/required}}{{#hasMore}},{{/hasMore}}
+{{/vars}}
+)

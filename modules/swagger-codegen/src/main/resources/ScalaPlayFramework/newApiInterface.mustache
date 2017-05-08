@@ -1,0 +1,17 @@
+package {{package}}
+
+{{#imports}}import {{import}}
+{{/imports}}
+
+{{#useBeanValidation}}
+import javax.validation.constraints._
+{{/useBeanValidation}}
+
+{{#operations}}
+trait {{classname}}ControllerImpInterface {
+{{#operation}}
+    def {{operationId}}({{#allParams}}{{paramName}}: {{#required}}{{dataType}}{{#defaultValue}} /* = {{{defaultValue}}}*/{{/defaultValue}}{{/required}}{{^required}}Option[{{dataType}}]{{#defaultValue}} /* = {{{defaultValue}}}*/{{/defaultValue}}{{^defaultValue}} = None{{/defaultValue}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}}): {{>returnTypeUnitIfEmpty}}
+
+{{/operation}}
+}
+{{/operations}}

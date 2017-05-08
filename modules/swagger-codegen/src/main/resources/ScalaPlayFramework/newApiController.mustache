@@ -1,0 +1,120 @@
+package {{package}}
+
+{{#imports}}import {{import}}
+{{/imports}}
+
+import play.api.libs.json.JsValue
+import play.api.mvc.Controller
+import play.api.mvc.Action
+import com.fasterxml.jackson.core.`type`.TypeReference
+import com.google.inject.Inject
+import javax.inject.Singleton
+
+import json.JsonUtil
+
+{{#useBeanValidation}}
+import javax.validation.constraints._
+{{/useBeanValidation}}
+
+import scala.util.{Success, Try}
+
+{{>generatedAnnotation}}
+{{#operations}}
+@Singleton
+class {{classname}}Controller @Inject() (imp: {{classname}}ControllerImp) extends Controller {
+
+    private val mapper = JsonUtil.mapper
+
+{{#operation}}
+
+    def {{operationId}}({{#pathParams}}{{>pathParams}}{{#hasMore}},{{/hasMore}}{{/pathParams}}) = Action { request =>
+        {{#bodyParams}}
+        {{#collectionFormat}}
+        //TODO: Maybe implement this in the future if we can support collection in the body params: see bug in swagger-play: https://github.com/swagger-api/swagger-play/issues/130
+        //TODO: Tt seems it is not detected that it's a list based on the collectionFormat field?
+        {{/collectionFormat}}
+        {{^collectionFormat}}
+
+        {{#required}}
+        val node{{paramName}}: JsValue = request.body.asJson.get
+        val {{paramName}}: {{dataType}} = mapper.readValue(node{{paramName}}.toString, {{#isMapContainer}}new TypeReference[java.util.Map[{{{dataType}}}]](){}{{/isMapContainer}}{{#isListContainer}}new TypeReference[java.util.List[{{{dataType}}}]](){}{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}classOf[{{{dataType}}}]{{/isMapContainer}}{{/isListContainer}})
+        {{/required}}
+        {{^required}}
+        val node{{paramName}}: Option[JsValue] = request.body.asJson
+        val {{paramName}}: {{dataType}} = node{{paramName}}.map(maybe{{paramName}} => mapper.readValue(maybeParamName.toString, {{#isMapContainer}}new TypeReference[java.util.Map[{{{dataType}}}]](){}{{/isMapContainer}}{{#isListContainer}}new TypeReference[java.util.List[{{{dataType}}}]](){}{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}classOf[{{{dataType}}}]{{/isMapContainer}}{{/isListContainer}}))
+        {{/required}}
+        {{/collectionFormat}}
+        {{/bodyParams}}
+        {{#queryParams}}
+        {{#collectionFormat}}
+        //TODO: Maybe implement this in the future if we can support collection in the body params: see bug in swagger-play: https://github.com/swagger-api/swagger-play/issues/130
+        //TODO: Tt seems it is not detected that it's a list based on the collectionFormat field?
+        //WIP when both bugs will be fixed
+        //List<Pair> {{paramName}}Pair = SwaggerUtils.parameterToPairs("{{collectionFormat}}", "{{paramName}}", request.getQueryString("{{baseName}}"))
+        val {{paramName}}: {{{dataType}}} = {{{dataType}}}()
+        //for (Pair pair : {{paramName}}Pair) {
+        //    {{paramName}}.add({{>conversionBegin}}pair.getValue(){{>conversionEnd}});
+        //}
+        {{/collectionFormat}}
+        {{^collectionFormat}}
+        {{#required}}val {{paramName}}: {{dataType}} = request.getQueryString("{{paramName}}").get{{>conversionEnd}}{{/required}}
+        {{^required}}val {{paramName}}: Option[{{dataType}}] = request.getQueryString("{{paramName}}"){{>conversionEndOptional}}{{/required}}
+        {{/collectionFormat}}
+        {{/queryParams}}
+        {{#formParams}}
+        {{^notFile}}
+        val {{paramName}}: {{{dataType}}} = request.body.asMultipartFormData.get.File("{{baseName}}");
+        {{#required}}if (({{paramName}} == null || ({{paramName}}.getFile().asInstanceOf[File]).length() == 0)) {
+            throw new RuntimeException("File cannot be empty")
+        }
+        {{/required}}
+        {{/notFile}}
+        {{#notFile}}
+        {{#collectionFormat}}
+        //TODO: Maybe implement this in the future if we can support collection in the body params: see bug in swagger-play: https://github.com/swagger-api/swagger-play/issues/130
+        //TODO: Tt seems it is not detected that it's a list based on the collectionFormat field?
+        //WIP when both bugs will be fixed
+        //List<Pair> {{paramName}}Pair = SwaggerUtils.parameterToPairs("{{collectionFormat}}", "{{paramName}}", ((String[]) request.body().asMultipartFormData().asFormUrlEncoded().get("{{baseName}}"))[0]);
+        {{{dataType}}} {{paramName}} = new Array{{{dataType}}}();
+        //for (Pair pair : {{paramName}}Pair) {
+        //    {{paramName}}.add({{>conversionBegin}}pair.getValue(){{>conversionEnd}});
+        //}
+        {{/collectionFormat}}
+        {{^collectionFormat}}
+        val urlEncoded{{paramName}}: Seq[String] = request.body.asFormUrlEncoded.get("{{baseName}}")
+
+        val tryOptional{{paramName}}: Try[Option[{{dataType}}]] = Try(urlEncoded{{paramName}}.size match {
+            case 0 => None
+            case 1 => Some(urlEncoded{{paramName}}.head)
+            case n => throw new IllegalArgumentException(s"{{baseName}} exists $n times")
+        })
+        // TODO to type, TODO optional, TODO failure
+        {{#required}}val {{paramName}}: {{dataType}} = tryOptional{{paramName}}.get.get{{>conversionEnd}}{{/required}}
+        {{^required}}val {{paramName}}: Option[{{dataType}}] = tryOptional{{paramName}}.get{{>conversionEndOptional}}{{/required}}
+        {{/collectionFormat}}
+        {{/notFile}}
+        {{/formParams}}
+        {{#headerParams}}
+        {{#collectionFormat}}
+        //TODO: Maybe implement this in the future if we can support collection in the body params: see bug in swagger-play: https://github.com/swagger-api/swagger-play/issues/130
+        //TODO: Tt seems it is not detected that it's a list based on the collectionFormat field?
+        //WIP when both bugs will be fixed
+        //List<Pair> {{paramName}}Pair = SwaggerUtils.parameterToPairs("{{collectionFormat}}", "{{paramName}}", request.getHeader("{{baseName}}"));
+        //{{{dataType}}} {{paramName}} = new Array{{{dataType}}}();
+        //for (Pair pair : {{paramName}}Pair) {
+        //    {{paramName}}.add({{>conversionBegin}}pair.getValue(){{>conversionEnd}});
+        //}
+        {{/collectionFormat}}
+        {{^collectionFormat}}
+        {{#required}}val {{paramName}}: Option[String] = request.headers.get("{{baseName}}").get{{>conversionEnd}}{{/required}}
+        {{^required}}val {{paramName}}: Option[String] = request.headers.get("{{baseName}}"){{>conversionEndOptional}}{{/required}}
+        {{/collectionFormat}}
+        {{/headerParams}}
+        {{#returnType}}val obj: {{returnType}} = {{/returnType}}imp.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+        {{#returnType}}{{^isResponseFile}}val result: String = mapper.writeValueAsString(obj)
+        Ok(result){{/isResponseFile}}{{#isResponseFile}}Ok(obj){{/isResponseFile}}{{/returnType}}
+        {{^returnType}}Ok{{/returnType}}
+    }
+{{/operation}}
+}
+{{/operations}}
