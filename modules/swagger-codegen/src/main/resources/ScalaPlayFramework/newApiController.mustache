@@ -64,9 +64,10 @@ class {{classname}}Controller @Inject() (imp: {{classname}}ControllerImp) extend
         {{/queryParams}}
         {{#formParams}}
         {{^notFile}}
-        // TODO optional
-        val {{paramName}}: Option[{{{dataType}}}] = request.body.asMultipartFormData.get.file("{{baseName}}")
-        {{#required}}if (({{paramName}} == null || ({{paramName}}.getFile().asInstanceOf[File]).length() == 0)) {
+        {{^required}}val {{paramName}}: Option[{{{dataType}}}] = request.body.asMultipartFormData.get.file("{{baseName}}"){{/required}}
+        {{#required}}
+        val {{paramName}}: {{{dataType}}} = request.body.asMultipartFormData.get.file("{{baseName}}").get
+        if ({{paramName}}.ref.file.length == 0) {
             throw new RuntimeException("File cannot be empty")
         }
         {{/required}}
