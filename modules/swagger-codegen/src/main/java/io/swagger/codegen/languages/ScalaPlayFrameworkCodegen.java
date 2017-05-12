@@ -210,11 +210,12 @@ public class ScalaPlayFrameworkCodegen extends AbstractScalaCodegen implements B
         additionalProperties.put("jdk8", "true");
         typeMapping.put("date", "LocalDate");
         typeMapping.put("DateTime", "OffsetDateTime");
+        typeMapping.put("file", "MultipartFormData.FilePart[Files.TemporaryFile]");
         importMapping.put("LocalDate", "java.time.LocalDate");
         importMapping.put("OffsetDateTime", "java.time.OffsetDateTime");
 
         importMapping.put("InputStream", "java.io.InputStream");
-        typeMapping.put("file", "MultipartFormData.FilePart[Files.TemporaryFile]");
+        importMapping.put("MultipartFormData.FilePart[Files.TemporaryFile]", "play.api.mvc.MultipartFormData");
     }
 
     @Override

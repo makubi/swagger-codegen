@@ -3,6 +3,7 @@ package {{package}}
 {{#imports}}import {{import}}
 {{/imports}}
 
+import play.api.libs.Files
 import play.api.libs.json.JsValue
 import play.api.mvc.Controller
 import play.api.mvc.Action
@@ -63,7 +64,8 @@ class {{classname}}Controller @Inject() (imp: {{classname}}ControllerImp) extend
         {{/queryParams}}
         {{#formParams}}
         {{^notFile}}
-        val {{paramName}}: {{{dataType}}} = request.body.asMultipartFormData.get.File("{{baseName}}");
+        // TODO optional
+        val {{paramName}}: Option[{{{dataType}}}] = request.body.asMultipartFormData.get.file("{{baseName}}")
         {{#required}}if (({{paramName}} == null || ({{paramName}}.getFile().asInstanceOf[File]).length() == 0)) {
             throw new RuntimeException("File cannot be empty")
         }
@@ -88,7 +90,7 @@ class {{classname}}Controller @Inject() (imp: {{classname}}ControllerImp) extend
             case 1 => Some(urlEncoded{{paramName}}.head)
             case n => throw new IllegalArgumentException(s"{{baseName}} exists $n times")
         })
-        // TODO to type, TODO optional, TODO failure
+        // TODO handle failure
         {{#required}}val {{paramName}}: {{dataType}} = tryOptional{{paramName}}.get.get{{>conversionEnd}}{{/required}}
         {{^required}}val {{paramName}}: Option[{{dataType}}] = tryOptional{{paramName}}.get{{>conversionEndOptional}}{{/required}}
         {{/collectionFormat}}
